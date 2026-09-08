@@ -14,9 +14,10 @@ class FileStorage:
         return FileStorage.__objects
 
     def new(self, obj):
-        """Set obj in __objects with key <obj class name>.id."""
+        """Set obj in __objects."""
         if obj:
-            key = "{}.{}".format(obj.__class__.__name__, obj.id)
+            key = "{}.{}".format(
+                obj.__class__.__name__, obj.id)
             FileStorage.__objects[key] = obj
 
     def save(self):
@@ -25,7 +26,8 @@ class FileStorage:
         for key, obj in FileStorage.__objects.items():
             json_objects[key] = obj.to_dict()
 
-        with open(FileStorage.__file_path, "w", encoding="utf-8") as f:
+        with open(FileStorage.__file_path,
+                  "w", encoding="utf-8") as f:
             json.dump(json_objects, f)
 
     def reload(self):
@@ -34,17 +36,31 @@ class FileStorage:
             return
 
         from models.base_model import BaseModel
+        from models.user import User
+        from models.state import State
+        from models.city import City
+        from models.place import Place
+        from models.amenity import Amenity
+        from models.review import Review
 
         classes = {
-            "BaseModel": BaseModel
+            "BaseModel": BaseModel,
+            "User": User,
+            "State": State,
+            "City": City,
+            "Place": Place,
+            "Amenity": Amenity,
+            "Review": Review
         }
 
         try:
-            with open(FileStorage.__file_path, "r", encoding="utf-8") as f:
-                saved_objects = json.load(f)
-                for key, obj_data in saved_objects.items():
-                    class_name = obj_data["__class__"]
-                    if class_name in classes:
-                        FileStorage.__objects[key] = classes[class_name](**obj_data)
+            with open(FileStorage.__file_path,
+                      "r", encoding="utf-8") as f:
+                saved = json.load(f)
+                for key, val in saved.items():
+                    name = val["__class__"]
+                    if name in classes:
+                        obj = classes[name](**val)
+                        FileStorage.__objects[key] = obj
         except Exception:
             pass
